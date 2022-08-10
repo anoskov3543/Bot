@@ -18,12 +18,21 @@ def init_db():
         ''')
 
         connect.commit()
-def get_db(uid):
+init_db()        
+
+def add_message(user_id, message):
+    with create_connect() as connect:
+        connect.execute(
+            'INSERT INTO Message(user_id, height) VALUES(?,?)', (user_id, message)
+        )
+        connect.commit()
+
+def get_db(uid, height):
     conn = sqlite3.connect(DB_FILE_NAME)
     user = conn.execute(f'SELECT * FROM message WHERE user_id ={uid}').fetchone()
 
     if user is None:
-
+        add_message(uid, heigh)
         conn.close()
         return None
     else:
@@ -33,14 +42,6 @@ def get_db(uid):
         height = user[2]
         return row, user_id, height
 
-def add_message(user_id, message):
-    with create_connect() as connect:
-        connect.execute(
-            'INSERT INTO Message(user_id, height) VALUES(?,?)', (user_id, message)
-        )
-        connect.commit()
-
-init_db()
 
 @bot.message_handler(commands=["start"])
 def start(m,res=False):
@@ -52,12 +53,12 @@ def start(m,res=False):
     bot.send_message(m.chat.id,'Нажми: \nВырости чтобы поднять свой рост\nМой рост чтобы узнать свой текущий рост ',reply_markup=markup)
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
-    global height
     if message.text.strip() == 'Вырости':
         height+=10
         answer=f"Вы выросли, теперь ваш рост={height}"
 
-        add_message(user_id=message.chat.id, message=answer)
+        #add_message(user_id=message.chat.id, message=answer)
+        
         bot.send_message(message.chat.id, answer)
         print(get_db(message.chat.id))
     if message.text.strip()=="Мой рост":
